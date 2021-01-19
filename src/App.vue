@@ -1,28 +1,36 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div><textarea id="code" style="width: 100%" rows="11"> </textarea></div>
+    <div><button id="run" type="button">Run</button></div>
+    <flowchart />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import flowchart from "./components/flowchart.vue";
+import Lexer from "./assets/parser/lexer";
+import Parser from "./assets/parser/parser";
+
+window.onload = function () {
+  let btn = document.getElementById("run"),
+    cd = document.getElementById("code");
+
+  btn.onclick = function () {
+    let lexer = new Lexer(cd.value);
+    let parser = new Parser(lexer);
+    console.log(parser.parse());
+  }
+};
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
-  }
-}
+    flowchart,
+  },
+};
 </script>
 
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
