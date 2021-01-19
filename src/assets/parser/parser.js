@@ -58,9 +58,9 @@ class Parser {
         let nodes = [];
         nodes.push(this.statement());
         for(;;) {
-            if (this.currentToken.type == TokenType.SEMI) {
-                this.eat(TokenType.SEMI);
-            }
+            // if (this.currentToken.type == TokenType.SEMI) {
+            //     this.eat(TokenType.SEMI);
+            // }
             let next = this.statement();
             if (next instanceof NoOp) {
                 break;
@@ -91,6 +91,9 @@ class Parser {
             node = this.whileStatement();
         } else { // empty
             node = this.empty();
+        }
+        while (this.currentToken.type == TokenType.SEMI) {
+            this.eat(TokenType.SEMI);
         }
         return node;
     }

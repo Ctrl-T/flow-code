@@ -47,16 +47,23 @@ class Lexer{
      */
     getSentence() {
         let result = '';
+        while(this.currentChar.match(/[^\s(){};]/)) {
+            result += this.currentChar;
+            this.advance();
+        }
+        if (ReservedKeyword[result] != undefined) {
+            return ReservedKeyword[result]
+        }
         while(this.currentChar.match(/[^(){};]/)) {
             result += this.currentChar;
             this.advance();
         }
         result = result.trim();
-        if (ReservedKeyword[result] == undefined) { // is a sentence
-            return new Token(TokenType.SENTENCE, result);
-        } else { // is a ReservedKeyword
-            return ReservedKeyword[result]
-        }
+        return new Token(TokenType.SENTENCE, result);
+        // if (ReservedKeyword[result] == undefined) { // is a sentence
+        // } else { // is a ReservedKeyword
+        //     return ReservedKeyword[result]
+        // }
     }
 
     /**

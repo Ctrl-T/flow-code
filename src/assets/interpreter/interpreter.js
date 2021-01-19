@@ -1,5 +1,5 @@
 import { BlockStatement, ExpressionStatement, IfStatement, NoOp, WhileStatement } from '../parser/ast';
-import { ChartNode, ConditionNode, EndNode, OperationNode, StartNode } from './chart-node';
+import {DirctionType, ChartNode, ConditionNode, EndNode, OperationNode, StartNode } from './chart-node';
 // import { ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode } from './chart-node'
 
 class Interpreter {
@@ -104,11 +104,11 @@ class Interpreter {
                 continue;
             }
             if (node instanceof ConditionNode) {
-                this.DSLConnections.push(`${node.id}(yes)->${node.trueNode.id}`);
+                this.DSLConnections.push(`${node.id}(yes)->${node.trueNode.id}(${DirctionType.TOP})`);
                 if (node.falseNode != null)
-                    this.DSLConnections.push(`${node.id}(no)->${node.falseNode.id}`);
+                    this.DSLConnections.push(`${node.id}(no)->${node.falseNode.id}(${DirctionType.TOP})`);
             } else {
-                this.DSLConnections.push(`${node.id}->${node.nextNode.id}`);
+                this.DSLConnections.push(`${node.id}(${DirctionType.BOTTOM})->${node.nextNode.id}(${DirctionType.TOP})`);
             }
 
         }

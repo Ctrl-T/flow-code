@@ -8,12 +8,12 @@ const ChartNodeType = {
     PARALLEL: 'parallel'
 }
 
-// const DirctionType = {
-//     LEFT: 'left',
-//     RIGHT: 'right',
-//     TOP: 'top',
-//     BOTTOM: 'bottom'
-// }
+const DirctionType = {
+    LEFT: 'left',
+    RIGHT: 'right',
+    TOP: 'top',
+    BOTTOM: 'bottom'
+}
 
 class ChartNode {
     static idCnt = 0;
@@ -116,4 +116,4 @@ class ParallelNode extends ChartNode {
     }
 }
 
-export { ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode };
+export {DirctionType, ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode };
