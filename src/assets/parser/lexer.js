@@ -69,9 +69,6 @@ class Lexer{
                 this.skipWhiteSpace();
                 continue;
             }
-            if(this.currentChar.match(/\w/)) {
-                return this.getSentence();
-            }
             if(this.currentChar == ';') {
                 this.advance();
                 return new Token(TokenType.SEMI, ';');
@@ -92,7 +89,7 @@ class Lexer{
                 this.advance();
                 return new Token(TokenType.END, '}');
             }
-            this.err();
+            return this.getSentence();
         }
         return new Token(TokenType.EOF, null);
     }

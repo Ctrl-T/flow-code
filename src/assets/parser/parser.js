@@ -1,4 +1,3 @@
-// import { Lexer } from './lexer';
 import { TokenType } from './token';
 import { ExpressionStatement, BlockStatement, IfStatement, WhileStatement, NoOp } from './ast';
 
@@ -59,23 +58,15 @@ class Parser {
         let nodes = [];
         nodes.push(this.statement());
         for(;;) {
-            while (this.currentToken.type == TokenType.SEMI) {
+            if (this.currentToken.type == TokenType.SEMI) {
                 this.eat(TokenType.SEMI);
             }
             let next = this.statement();
             if (next instanceof NoOp) {
                 break;
             }
-            nodes.push(this.statement());
+            nodes.push(next);
         }
-        // while (this.currentToken.type == TokenType.SEMI) {
-        //     this.eat(TokenType.SEMI);
-        //     let next = this.statement();
-        //     if (next instanceof NoOp) {
-        //         break;
-        //     }
-        //     nodes.push(this.statement());
-        // }
         if (this.currentToken.type == TokenType.SENTENCE) {
             this.error();
         }
@@ -126,6 +117,7 @@ class Parser {
         let consequent = this.statement();
         let alternate = null;
         if (this.currentToken.type == TokenType.ELSE) {
+            this.eat(TokenType.ELSE);
             alternate = this.statement();
         }
         let node = new IfStatement(test, consequent, alternate);
