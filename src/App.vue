@@ -5,74 +5,54 @@
         <div class="logo">FlowCode</div>
       </header>
       <div id="main">
-        <div id="input-pane">
-          <div class="edit-wrapper">
-            <div id="editor" class="editor" style="width: 100%" rows="11"></div>
-          </div>
+        <div id="input-pane" class="flex-auto">
+          <tabs>
+            <tab name="代码" :selected="true">
+              <code-editor v-on:code-change="updateDSL"></code-editor>
+            </tab>
+            <tab name="样式">
+              <div>here is the content for the music tab.</div>
+            </tab>
+            <tab name="样例">
+              <div>here is the content for the video tab.</div>
+            </tab>
+          </tabs>
         </div>
-        <div id="output-pane">
-          <div id="diagram"></div>
+        <div id="output-pane" class="flex-auto">
+          <diagram-canvas v-bind:DSL="DSL"></diagram-canvas>
         </div>
       </div>
     </div>
-
-    <!-- <flowchart /> -->
   </div>
 </template>
 
 <script>
-// import flowchart from "./components/flowchart.vue";
-import Lexer from "./assets/parser/lexer";
-import Parser from "./assets/parser/parser";
-import Intepreter from "./assets/interpreter/interpreter";
-
-window.onload = function () {
-  let editorDiv = document.getElementById("editor");
-  window.ace.config.set(
-    "basePath",
-    "https://cdn.bootcdn.net/ajax/libs/ace/test/"
-  );
-  let editor = window.ace.edit(editorDiv);
-  editor.setOptions({
-      theme: "ace/theme/monokai",
-      mode: "ace/mode/javascript",
-      fontSize: "14pt"
-  })
-//   editor.setTheme("ace/theme/monokai");
-//   editor.getSession().setMode("ace/mode/javascript");
-  editor.resize();
-  editor.getSession().on("change", debounce(on_change, 200));
-  on_change();
-  function on_change() {
-    let lexer = new Lexer(editor.getValue());
-    let parser = new Parser(lexer);
-    let interperter = new Intepreter(parser);
-    let diagram = window.flowchart.parse(interperter.interpret());
-    let diagramDiv = document.getElementById("diagram");
-    diagramDiv.innerHTML = "";
-    diagram.drawSVG(diagramDiv);
-  }
-  function debounce(func, wait, immediate) {
-    var timeout;
-    return function executedFunction() {
-      var context = this;
-      var args = arguments;
-      var later = function () {
-        timeout = null;
-        if (!immediate) func.apply(context, args);
-      };
-      var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      if (callNow) func.apply(context, args);
-    };
-  }
-};
+import codeEditor from "./components/code-editor";
+import diagramCanvas from "./components/diagram-canvas";
+import { tabs, tab } from "./components/tag-pane.js";
 
 export default {
   name: "App",
   components: {
-    // flowchart,
+    "diagram-canvas": diagramCanvas,
+    "code-editor": codeEditor,
+    tab: tab,
+    tabs: tabs,
+  },
+  data() {
+    return {
+      DSL: "",
+    };
+  },
+  mounted() {
+    window.Split(["#input-pane", "#output-pane"], {
+      sizes: [25, 75],
+    });
+  },
+  methods: {
+    updateDSL(DSL) {
+      this.DSL = DSL;
+    },
   },
 };
 </script>
@@ -89,40 +69,41 @@ body {
 #container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
 }
 header {
   flex: none;
   min-height: 2rem;
 }
 .logo {
-    /* display: inline-block; */
-    padding: 1rem;
-    font-size: 1.5rem;
-    line-height: 1.5rem;
+  padding: 1rem;
+  font-size: 1.5rem;
+  line-height: 1.5rem;
 }
 #main {
   display: flex;
   flex: auto;
   flex-direction: row;
   min-height: 0.05rem;
-  /* height: 100%; */
-}
-#input-pane {
-  flex: auto;
-  /* height: 100%; */
-}
-#output-pane {
-  flex: auto;
-}
-#diagram > svg {
-  margin: 2rem auto;
-  display: block;
-}
-.edit-wrapper {
-  /* height: 100%; */
-}
-.editor {
   height: calc(100vh - 3.5rem);
+}
+.flex-auto {
+  flex: auto;
+}
+.gutter {
+  position: relative;
+  color: #868ba9;
+  text-align: center;
+  background: rgb(83, 87, 110);
+}
+.gutter::before {
+  content: "||";
+  position: absolute;
+  display: block;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scaleY(1.5);
+}
+.gutter:hover {
+  color: #babfe0;
 }
 </style>
