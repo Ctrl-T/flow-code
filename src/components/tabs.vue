@@ -8,7 +8,11 @@
           :class="{ 'is-active': tab.isActive }"
         >
           <div class="tab-btn" :href="tab.href" @click="selectTab(tab)">
-            {{ tab.name }}
+            <div
+              v-bind:style="{
+                background: 'url(\'' + tab.currIconUrl + '\') 0% 0% / contain',
+              }"
+            ></div>
           </div>
         </li>
       </ul>
@@ -80,10 +84,11 @@ export default {
   text-orientation: upright;
   padding: 0.5rem;
   cursor: pointer;
-  width: 2rem;
+  width: 3rem;
 }
-.tab-btn:hover, .is-active > .tab-btn {
-    color: #e5e5e5;
+.tab-btn:hover,
+.is-active > .tab-btn {
+  color: #e5e5e5;
 }
 .is-active > .tab-btn::before {
   content: "";
@@ -92,5 +97,9 @@ export default {
   width: 2px;
   height: 100%;
   left: 0;
+}
+.tab-btn > div {
+  max-height: 2rem;
+  flex: auto;
 }
 </style>
