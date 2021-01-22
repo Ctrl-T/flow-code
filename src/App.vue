@@ -73,6 +73,8 @@ body {
 header {
   flex: none;
   min-height: 2rem;
+  background: #373a47;
+  color: aliceblue;
 }
 .logo {
   padding: 1rem;

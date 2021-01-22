@@ -6,7 +6,19 @@
       <div id="zoom-out" class="nav-btn"><div></div></div>
     </div>
     <div id="canvas-bkg" class="canvas-container">
-      <div id="canvas"></div>
+      <div
+        id="canvas"
+        v-bind:style="{
+          left: pos.x + 'px',
+          top: pos.y + 'px',
+          transform:
+            'scale(' +
+            scale +
+            ', ' +
+            scale +
+            ')',
+        }"
+      ></div>
     </div>
   </div>
 </template>
@@ -45,6 +57,22 @@ export default {
       diagram.drawSVG(this.canvas);
       this.centerCanvas();
     },
+    // pos: {
+    //   handler: function (newPos) {
+    //     let rightPos = this.boundryStopper(newPos);
+    //     if (rightPos.x != newPos.x || rightPos.y != newPos.y) {
+    //       newPos = rightPos;
+    //       console.log('out of boundry')
+    //     }
+    //   },
+    //   deep: true,
+    // },
+    // scale: function () {
+    //   let newPos = this.boundryStopper();
+    //   if (newPos.x != this.pos.x || newPos.y != this.pos.y) {
+    //     this.pos = newPos;
+    //   }
+    // },
   },
   methods: {
     /**
@@ -80,7 +108,6 @@ export default {
         // set the element's new position:
         that.pos.x -= deltaX;
         that.pos.y -= deltaY;
-        that.update();
       }
 
       function closeDragElement() {
@@ -97,7 +124,6 @@ export default {
       var pos = this.pos;
       var zoom_target = { x: 0, y: 0 };
       var zoom_point = { x: 0, y: 0 };
-      var update = this.update;
       let that = this;
       target.style["transform-origin"] = "0 0";
       container.onwheel = scrolled;
@@ -126,29 +152,12 @@ export default {
         // calculate x and y based on zoom
         pos.x = -zoom_target.x * that.scale + zoom_point.x;
         pos.y = -zoom_target.y * that.scale + zoom_point.y;
-        update();
       }
-    },
-    /**
-     * update transform of canvas
-     */
-    update() {
-      this.canvas.style.transform =
-        "translate(" +
-        this.pos.x +
-        "px," +
-        this.pos.y +
-        "px) scale(" +
-        this.scale +
-        "," +
-        this.scale +
-        ")";
-      this.boundryStopper();
     },
     /**
      * center vanvas
      */
-    centerCanvas() {
+    centerCanvas: async function () {
       let bkgRect, canvasRect;
       updateRects(this);
       // not too small
@@ -157,7 +166,7 @@ export default {
         bkgRect.width - canvasRect.width > 50
       ) {
         this.scale += 0.1;
-        this.update();
+        await this.$nextTick();
         updateRects(this);
       }
       // not too large
@@ -166,13 +175,13 @@ export default {
         bkgRect.width - canvasRect.width < 50
       ) {
         this.scale -= 0.1;
-        this.update();
+        await this.$nextTick();
         updateRects(this);
       }
       // center position
       this.pos.y = bkgRect.height / 2 - canvasRect.height / 2;
       this.pos.x = bkgRect.width / 2 - canvasRect.width / 2;
-      this.update();
+      await this.$nextTick();
       function updateRects(that) {
         bkgRect = that.canvasBkg.getBoundingClientRect();
         canvasRect = that.canvas.getBoundingClientRect();
@@ -204,26 +213,34 @@ export default {
         this.canvasBkg.dispatchEvent(wheelEvent);
       };
     },
-    boundryStopper() {
+    boundryStopper(newPos) {
       const edge = 20;
+      let x, y;
+      if (newPos != undefined) {
+        x = newPos.x;
+        y = newPos.y;
+      } else {
+        x = this.pos.x;
+        y = this.pos.y;
+      }
       let bkgRect = this.canvasBkg.getBoundingClientRect();
       let canvasRect = this.canvas.getBoundingClientRect();
       if (bkgRect.right - canvasRect.left < edge) {
-        this.pos.x -= canvasRect.left - bkgRect.right + edge;
-        this.update();
+        x -= canvasRect.left - bkgRect.right + edge;
       }
       if (canvasRect.right - bkgRect.left < edge) {
-        this.pos.x += bkgRect.left - canvasRect.right + edge;
-        this.update();
+        x += bkgRect.left - canvasRect.right + edge;
       }
       if (canvasRect.bottom - bkgRect.top < edge) {
-        this.pos.y += -(canvasRect.bottom - bkgRect.top) + edge;
-        this.update();
+        y += -(canvasRect.bottom - bkgRect.top) + edge;
       }
       if (bkgRect.bottom - canvasRect.top < edge) {
-        this.pos.y -= -(bkgRect.bottom - canvasRect.top) + edge;
-        this.update();
+        y -= -(bkgRect.bottom - canvasRect.top) + edge;
       }
+      return {
+        x: x,
+        y: y,
+      };
     },
   },
 };
