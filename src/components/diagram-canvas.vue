@@ -1,9 +1,9 @@
 <template>
   <div class="canvas-container">
     <div class="nav-btn-list">
-      <div id="center" class="nav-btn"></div>
-      <div id="zoom-in" class="nav-btn"></div>
-      <div id="zoom-out" class="nav-btn"></div>
+      <div id="center" class="nav-btn"><div></div></div>
+      <div id="zoom-in" class="nav-btn"><div></div></div>
+      <div id="zoom-out" class="nav-btn"><div></div></div>
     </div>
     <div id="canvas-bkg" class="canvas-container">
       <div id="canvas"></div>
@@ -143,6 +143,7 @@ export default {
         "," +
         this.scale +
         ")";
+      this.boundryStopper();
     },
     /**
      * center vanvas
@@ -150,17 +151,25 @@ export default {
     centerCanvas() {
       let bkgRect, canvasRect;
       updateRects(this);
-      while (canvasRect.height > bkgRect.height - 50 || canvasRect.width > bkgRect.width - 50) {
+      // not too small
+      while (
+        bkgRect.height - canvasRect.height > 50 &&
+        bkgRect.width - canvasRect.width > 50
+      ) {
+        this.scale += 0.1;
+        this.update();
+        updateRects(this);
+      }
+      // not too large
+      while (
+        bkgRect.height - canvasRect.height < 50 ||
+        bkgRect.width - canvasRect.width < 50
+      ) {
         this.scale -= 0.1;
         this.update();
         updateRects(this);
       }
-      while (canvasRect.height < bkgRect.height - 50 && canvasRect.width < bkgRect.width - 50) {
-        this.scale += 0.1;
-        this.update();
-        updateRects(this);        
-      }
-      // updateRects(this);
+      // center position
       this.pos.y = bkgRect.height / 2 - canvasRect.height / 2;
       this.pos.x = bkgRect.width / 2 - canvasRect.width / 2;
       this.update();
@@ -174,6 +183,47 @@ export default {
       btnCenter.onclick = () => {
         this.centerCanvas();
       };
+      let btnZoomIn = document.getElementById("zoom-in");
+      btnZoomIn.onclick = () => {
+        let bkgRect = this.canvasBkg.getBoundingClientRect();
+        let wheelEvent = new WheelEvent("wheel", {
+          deltaY: -1,
+          clientX: bkgRect.left + bkgRect.width / 2,
+          clientY: bkgRect.top + bkgRect.height / 2,
+        });
+        this.canvasBkg.dispatchEvent(wheelEvent);
+      };
+      let btnZoomOut = document.getElementById("zoom-out");
+      btnZoomOut.onclick = () => {
+        let bkgRect = this.canvasBkg.getBoundingClientRect();
+        let wheelEvent = new WheelEvent("wheel", {
+          deltaY: 1,
+          clientX: bkgRect.left + bkgRect.width / 2,
+          clientY: bkgRect.top + bkgRect.height / 2,
+        });
+        this.canvasBkg.dispatchEvent(wheelEvent);
+      };
+    },
+    boundryStopper() {
+      const edge = 20;
+      let bkgRect = this.canvasBkg.getBoundingClientRect();
+      let canvasRect = this.canvas.getBoundingClientRect();
+      if (bkgRect.right - canvasRect.left < edge) {
+        this.pos.x -= canvasRect.left - bkgRect.right + edge;
+        this.update();
+      }
+      if (canvasRect.right - bkgRect.left < edge) {
+        this.pos.x += bkgRect.left - canvasRect.right + edge;
+        this.update();
+      }
+      if (canvasRect.bottom - bkgRect.top < edge) {
+        this.pos.y += -(canvasRect.bottom - bkgRect.top) + edge;
+        this.update();
+      }
+      if (bkgRect.bottom - canvasRect.top < edge) {
+        this.pos.y -= -(bkgRect.bottom - canvasRect.top) + edge;
+        this.update();
+      }
     },
   },
 };
@@ -196,6 +246,10 @@ export default {
   padding: 3rem;
   background: white;
   box-shadow: 3px 4px 14px rgba(18, 18, 18, 0.1);
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
 }
 .smooth-scale {
   transition: transform 220ms ease-in-out;
@@ -218,5 +272,29 @@ export default {
     inset -3px -3px 1px 0px rgb(18 18 18 / 12%),
     inset 6px 6px 9px rgb(18 18 18 / 10%);
   cursor: pointer;
+  padding: 0.2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.nav-btn:hover {
+  background: #f5f5f5;
+}
+.nav-btn:active {
+  background: #f1f1f1;
+}
+.nav-btn > div {
+  background-size: contain;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+#center > div {
+  background-image: url("../assets/img/self-adaption.svg");
+}
+#zoom-in > div {
+  background-image: url("../assets/img/plus.svg");
+}
+#zoom-out > div {
+  background-image: url("../assets/img/minus.svg");
 }
 </style>
