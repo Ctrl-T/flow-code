@@ -8,11 +8,8 @@
           :class="{ 'is-active': tab.isActive }"
         >
           <div class="tab-btn" :href="tab.href" @click="selectTab(tab)">
-            <div
-              v-bind:style="{
-                background: 'url(\'' + tab.currIconUrl + '\') 0% 0% / contain',
-              }"
-            ></div>
+            <!-- {{ tab.name }} -->
+            <i :class="tab.iconClass"></i>
           </div>
         </li>
       </ul>
@@ -79,10 +76,8 @@ export default {
   display: flex;
   text-align: center;
   justify-content: center;
-  align-content: center;
   flex-direction: column;
   text-orientation: upright;
-  padding: 0.5rem;
   cursor: pointer;
   width: 3rem;
 }
@@ -98,8 +93,7 @@ export default {
   height: 100%;
   left: 0;
 }
-.tab-btn > div {
-  max-height: 2rem;
-  flex: auto;
+.tab-btn .iconfont {
+  font-size: 2rem;
 }
 </style>

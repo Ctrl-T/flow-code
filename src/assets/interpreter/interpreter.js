@@ -1,5 +1,5 @@
 import { BlockStatement, ExpressionStatement, IfStatement, NoOp, WhileStatement } from '../parser/ast';
-import {DirctionType, ChartNode, ConditionNode, EndNode, OperationNode, StartNode } from './chart-node';
+import { ChartNode, ConditionNode, EndNode, OperationNode, StartNode } from './chart-node';
 // import { ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode } from './chart-node'
 
 class Interpreter {
@@ -75,7 +75,12 @@ class Interpreter {
             let realLastNode = this.lastNode;
             let trueNode = this.convertToChartNode(node.consequent);
             this.lastNode = realLastNode;
-            let falseNode = this.convertToChartNode(node.alternate);
+            let falseNode = null;
+            if (node.alternate) {
+                falseNode = this.convertToChartNode(node.alternate);
+            } else {
+                falseNode = realLastNode;
+            }
             chartNode = new ConditionNode(node.test.text, trueNode, falseNode);
         } else if (node instanceof WhileStatement) {
             let realLastNode = this.lastNode;
@@ -104,11 +109,11 @@ class Interpreter {
                 continue;
             }
             if (node instanceof ConditionNode) {
-                this.DSLConnections.push(`${node.id}(yes)->${node.trueNode.id}(${DirctionType.TOP})`);
+                this.DSLConnections.push(`${node.id}(yes)->${node.trueNode.id}`);
                 if (node.falseNode != null)
-                    this.DSLConnections.push(`${node.id}(no)->${node.falseNode.id}(${DirctionType.TOP})`);
+                    this.DSLConnections.push(`${node.id}(no)->${node.falseNode.id}`);
             } else {
-                this.DSLConnections.push(`${node.id}(${DirctionType.BOTTOM})->${node.nextNode.id}(${DirctionType.TOP})`);
+                this.DSLConnections.push(`${node.id}->${node.nextNode.id}`);
             }
 
         }

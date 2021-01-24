@@ -85,9 +85,9 @@ class Parser {
             node = this.blockStatement();
         } else if (this.currentToken.type == TokenType.SENTENCE) { // ExpressionStatement
             node = this.expressionStatement();
-        } else if (this.currentToken.type == TokenType.IF) {
+        } else if (this.currentToken.type == TokenType.IF) { // IfStatement
             node = this.ifStatement();
-        } else if (this.currentToken.type == TokenType.WHILE) {
+        } else if (this.currentToken.type == TokenType.WHILE) { // WhileStatement
             node = this.whileStatement();
         } else { // empty
             node = this.empty();

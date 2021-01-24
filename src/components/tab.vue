@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="tab"
-    v-show="isActive"
-  >
+  <div class="tab" v-show="isActive">
     <slot></slot>
     <!-- <i>href : {{ href }}</i> -->
   </div>
@@ -14,21 +11,16 @@ export default {
   props: {
     name: { required: true },
     selected: { default: false },
-    activeIconUrl: { default: "" },
-    iconUrl: { default: "" },
+    iconClass:String,
   },
   data() {
     return {
       isActive: false,
-      isHover: false,
     };
   },
   computed: {
     href() {
       return "#" + this.name.toLowerCase().replace(/ /g, "-");
-    },
-    currIconUrl() {
-      return this.isActive ? this.activeIconUrl : this.iconUrl;
     },
   },
   mounted() {
