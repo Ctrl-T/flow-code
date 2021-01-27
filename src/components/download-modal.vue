@@ -1,14 +1,19 @@
 <template>
-  <modal name="download-modal" classes="modal-body" @before-open="initData">
-    <table>
-      <tr>
-        <th>缩放倍率</th>
-        <th>图像大小</th>
-        <th>文件名</th>
-        <th>文件类型</th>
-      </tr>
-      <tr>
-        <td>
+  <modal
+    name="download-modal"
+    classes="modal-body"
+    @before-open="initData"
+    height="400"
+    adaptive
+  >
+    <h3>导出</h3>
+    <div class="quit-btn" @click="hide">
+      <i class="iconfont icon-close"></i>
+    </div>
+    <div class="grid-container">
+      <div>
+        <div>缩放倍率</div>
+        <div>
           <input
             v-model="scale100"
             type="number"
@@ -16,21 +21,53 @@
             oninput="validity.valid||(value='');"
           />
           %
-        </td>
-        <td>{{ width }}×{{ height }}</td>
-        <td><input type="text" v-model="fileName" /></td>
-        <td>
+        </div>
+      </div>
+      <div>
+        <div>图像大小</div>
+        <div>
+          {{ width + 2 * paddingWidth }}×{{ height + 2 * paddingWidth }}
+        </div>
+      </div>
+      <div>
+        <div>文件名</div>
+        <div><input type="text" v-model="fileName" /></div>
+      </div>
+      <div>
+        <div>文件类型</div>
+        <div>
           <select v-model="fileType">
-            <option value="jpg">.jpg</option>
-            <option value="png">.png</option>
-            <option value="svg">.svg</option>
+            <option v-for="type in FILE_TYPES" :value="type" :key="type.id">
+              .{{ type.name }}
+            </option>
           </select>
-        </td>
-      </tr>
-    </table>
+        </div>
+      </div>
+      <div>
+        <div>边缘宽度</div>
+        <div>
+          <input
+            v-model="originPaddingWidth"
+            type="number"
+            min="0"
+            oninput="validity.valid||(value='');"
+          />
+        </div>
+      </div>
+      <div>
+        <div>透明背景</div>
+        <div>
+          <input
+            v-model="bkgTransparent"
+            :disabled="fileType ? !fileType.allowNoBkg : true"
+            type="checkbox"
+          />
+        </div>
+      </div>
+    </div>
     <div class="button-group">
-      <button @click="downloadImg('download')">下载到本地</button>
-      <button @click="downloadImg('tab')">新窗口打开</button>
+      <button @click="downloadImg(triggerDownload)">下载到本地</button>
+      <button @click="downloadImg(openInNewTab)">新窗口打开</button>
     </div>
   </modal>
 </template>
@@ -41,12 +78,26 @@ export default {
   data() {
     return {
       svgElem: null,
-      scale100: 300,
+      scale100: 500,
       originWidth: 0,
       originHeight: 0,
       fileName: "flowchart",
-      fileType: "jpg",
+      fileType: null,
+      bkgTransparent: false,
+      originPaddingWidth: 48,
     };
+  },
+  beforeCreate() {
+    this.FILE_TYPES = {
+      JPG: { name: "jpeg", allowNoBkg: false },
+      PNG: { name: "png", allowNoBkg: true },
+      SVG: { name: "svg", allowNoBkg: true },
+    };
+  },
+  watch: {
+    fileType: function (newVal) {
+      this.bkgTransparent = newVal.allowNoBkg;
+    },
   },
   computed: {
     width() {
@@ -56,30 +107,41 @@ export default {
       return parseInt(this.originHeight * this.scale);
     },
     paddingWidth() {
-      return 48 * this.scale;
+      return this.originPaddingWidth * this.scale;
     },
     scale() {
       return Math.abs(this.scale100) / 100;
     },
   },
   methods: {
+    hide() {
+      this.$modal.hide("download-modal");
+    },
     initData(evt) {
       this.svgElem = evt.params;
       this.originWidth = this.svgElem.getAttribute("width");
       this.originHeight = this.svgElem.getAttribute("height");
+      this.fileType = this.FILE_TYPES.JPG;
     },
     downloadImg(method) {
       let canvas = document.createElement("canvas"),
         ctx = canvas.getContext("2d");
-      ctx.canvas.width = this.width + 2 * this.paddingWidth;
-      ctx.canvas.height = this.height + 2 * this.paddingWidth;
+      canvas.width = this.width + 2 * this.paddingWidth;
+      canvas.height = this.height + 2 * this.paddingWidth;
+      if (!this.bkgTransparent) {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
       let data = new XMLSerializer().serializeToString(this.svgElem);
       let DOMURL = window.URL || window.webkitURL || window;
 
-      let img = new Image();
       let svgBlob = new Blob([data], { type: "image/svg+xml;charset=utf-8" });
       let url = DOMURL.createObjectURL(svgBlob);
-
+      if (this.fileType == this.FILE_TYPES.SVG) {
+        method(url);
+        return;
+      }
+      let img = new Image();
       img.onload = () => {
         ctx.drawImage(
           img,
@@ -89,14 +151,9 @@ export default {
           this.height
         );
         DOMURL.revokeObjectURL(url);
-        let imgURI = canvas.toDataURL("image/" + this.fileType);
-        if (method == "download") {
-          this.triggerDownload(imgURI);
-        } else if (method == "tab") {
-          this.openInNewTab(imgURI);
-        }
+        let imgURI = canvas.toDataURL("image/" + this.fileType, 1);
+        method(imgURI);
       };
-
       img.src = url;
     },
     triggerDownload(imgURI) {
@@ -107,7 +164,7 @@ export default {
       });
 
       let a = document.createElement("a");
-      a.setAttribute("download", this.fileName + "." + this.fileType);
+      a.setAttribute("download", this.fileName + "." + this.fileType.name);
       a.setAttribute("href", imgURI);
       a.setAttribute("target", "_blank");
 
@@ -124,66 +181,75 @@ export default {
 </script>
 
 <style lang="scss">
-$bk-color: #44475a;
-$bk-color-lighter-1: #5d6178;
-$bk-color-lighter-2: #8186a0;
-$bk-color-darder: #282a36;
+@import "../assets/css/dark-theme.scss";
+
 .modal-body {
-  background-color: $bk-color !important;
-  color: white;
+  background-color: $bk-pop-clr !important;
+  color: $txt-head-clr;
   text-align: center;
   padding: 2rem;
-  display: flex;
-  justify-content: space-around;
-  flex-direction: column;
-  table {
+  .quit-btn {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    cursor: default;
+    color: $txt-clr;
+    &:hover {
+      color: $txt-head-clr;
+    }
+  }
+  .grid-container {
     line-height: 2rem;
-    table-layout: fixed;
-    width: 100%;
+    display: grid;
+    grid: {
+      template-columns: repeat(3, 1fr);
+      template-rows: repeat(2, 1fr);
+      auto-flow: column;
+      // row-gap: 1.5rem;
+    }
+    & > div {
+      padding: 1rem 0;
+      &:hover {
+        background-color: $bk-hint-clr;
+      }
+    }
     input {
       text-align: center;
-      background-color: $bk-color-darder;
-      color: white;
-      border: 0 {
-        radius: 0;
-      }
-      padding: 0.2rem;
-      outline: 0;
       width: 2.5rem;
-      font-size: 1rem;
-      &::-webkit-inner-spin-button,
-      &::-webkit-outer-spin-button {
-        display: none;
-      }
+      @import "../assets/css/input.scss";
       &[type="text"] {
         width: 5rem;
       }
     }
     select {
-      background-color: $bk-color-lighter-1;
+      background-color: $bk-active-clr;
       padding: 0.2rem;
-      color: white;
+      color: $txt-head-clr;
       outline: none;
       border: none;
       font-size: 1rem;
       -webkit-appearance: button;
       appearance: button;
       &:hover {
-        background-color: $bk-color-lighter-2;
+        background-color: $bk-hover-clr;
       }
     }
   }
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
   .button-group {
     display: flex;
     justify-content: space-around;
+    padding: 2rem 0;
     button {
-      color: white;
+      color: $txt-head-clr;
       padding: 0.65em 2em;
       border: none;
       outline: none;
-      background-color: $bk-color-lighter-1;
+      background-color: $bk-active-clr;
       &:hover {
-        background-color: $bk-color-lighter-2;
+        background-color: $bk-hover-clr;
       }
     }
   }

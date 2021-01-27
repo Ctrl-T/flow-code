@@ -5,10 +5,7 @@
 </template>
 
 <script>
-import debounce from "../assets/utils";
-import Lexer from "../assets/parser/lexer";
-import Parser from "../assets/parser/parser";
-import Intepreter from "../assets/interpreter/interpreter";
+import debounce from "../assets/js/utils";
 
 export default {
   name: "codeEditor",
@@ -16,6 +13,14 @@ export default {
     return {
       editor: null,
     };
+  },
+  props: {
+    editorSize: Array,
+  },
+  watch: {
+    editorSize: function () {
+      this.editor.resize();
+    },
   },
   mounted() {
     let editorDiv = document.getElementById("editor");
@@ -36,20 +41,17 @@ export default {
   },
   methods: {
     onCodeChange() {
-      let lexer = new Lexer(this.editor.getValue());
-      let parser = new Parser(lexer);
-      let interperter = new Intepreter(parser);
-      this.$emit("code-change", interperter.interpret());
+      this.$emit("code-change", this.editor.getValue());
     },
   },
 };
 </script>
 
-<style>
+<style lang="scss">
 .edit-wrapper {
   height: 100%;
-}
-.editor {
-  height: 100% !important;
+  .editor {
+    height: 100% !important;
+  }
 }
 </style>

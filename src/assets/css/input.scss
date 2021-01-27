@@ -1,0 +1,14 @@
+& {
+    background-color: $bk-edit-clr;
+    color: $txt-head-clr;
+    border: 0 {
+        radius: .1rem;
+    }
+    padding: 0.2rem 0.4rem;
+    outline: 0;
+    font-size: 1rem;
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      display: none;
+    }
+}

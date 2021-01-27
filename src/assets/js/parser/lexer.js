@@ -54,16 +54,12 @@ class Lexer{
         if (ReservedKeyword[result] != undefined) {
             return ReservedKeyword[result]
         }
-        while(this.currentChar.match(/[^(){};]/)) {
+        while(this.currentChar.match(/[^);]/)) {
             result += this.currentChar;
             this.advance();
         }
         result = result.trim();
         return new Token(TokenType.SENTENCE, result);
-        // if (ReservedKeyword[result] == undefined) { // is a sentence
-        // } else { // is a ReservedKeyword
-        //     return ReservedKeyword[result]
-        // }
     }
 
     /**

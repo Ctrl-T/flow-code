@@ -10,7 +10,11 @@
       <div id="zoom-out" class="nav-btn" v-on:click="zoom(false)">
         <i class="iconfont icon-reduce"></i>
       </div>
-      <div id="download" class="nav-btn"  @click="$modal.show('download-modal', canvas.children[0])">
+      <div
+        id="download"
+        class="nav-btn"
+        @click="$modal.show('download-modal', canvas.children[0])"
+      >
         <i class="iconfont icon-download"></i>
       </div>
     </div>
@@ -245,57 +249,59 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style scoped lang="scss">
 .canvas-container {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-}
-#canvas-bkg {
-  background: #f6f6f6;
-}
-#canvas {
-  position: absolute;
-  cursor: default;
-  padding: 3rem;
-  background: white;
-  box-shadow: 3px 4px 14px rgba(18, 18, 18, 0.1);
-  -webkit-user-select: none; /* Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE10+/Edge */
-  user-select: none; /* Standard */
-}
-.smooth-scale {
-  transition: transform 200ms cubic-bezier(0.46, 0.03, 0.52, 0.96);
-}
-.nav-btn-list {
-  position: absolute;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  top: 3rem;
-  right: 2rem;
-}
-.nav-btn {
-  width: 2rem;
-  height: 2rem;
-  margin: 1rem;
-  background: white;
-  border-radius: 0.4rem;
-  box-shadow: 3px 4px 14px rgba(18, 18, 18, 0.1),
-    inset -3px -3px 1px 0px rgb(18 18 18 / 12%),
-    inset 6px 6px 9px rgb(18 18 18 / 10%);
-  cursor: pointer;
-  padding: 0.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.nav-btn:hover {
-  background: #f5f5f5;
-}
-.nav-btn:active {
-  background: #f1f1f1;
+  #canvas-bkg {
+    background: #f6f6f6;
+    #canvas {
+      position: absolute;
+      cursor: default;
+      padding: 3rem;
+      background: white;
+      box-shadow: 3px 4px 14px rgba(18, 18, 18, 0.1);
+      -webkit-user-select: none; /* Safari */
+      -moz-user-select: none; /* Firefox */
+      -ms-user-select: none; /* IE10+/Edge */
+      user-select: none; /* Standard */
+    }
+  }
+  .smooth-scale {
+    transition: transform 200ms cubic-bezier(0.46, 0.03, 0.52, 0.96);
+  }
+  .nav-btn-list {
+    position: absolute;
+    height: 14rem;
+    max-height: calc(100% - 3rem);
+    justify-content: space-between;
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    top: 3rem;
+    right: 2rem;
+    .nav-btn {
+      width: 2rem;
+      height: 2rem;
+      background: white;
+      border-radius: 0.4rem;
+      box-shadow: 3px 4px 14px rgba(18, 18, 18, 0.1),
+        inset -3px -3px 1px 0px rgb(18 18 18 / 12%),
+        inset 6px 6px 9px rgb(18 18 18 / 10%);
+      cursor: pointer;
+      padding: 0.2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      &:hover {
+        background: #f5f5f5;
+      }
+      &:active {
+        background: #f1f1f1;
+      }
+    }
+  }
 }
 </style>

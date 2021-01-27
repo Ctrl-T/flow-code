@@ -7,7 +7,12 @@
           :key="tab.id"
           :class="{ 'is-active': tab.isActive }"
         >
-          <div class="tab-btn" :href="tab.href" @click="selectTab(tab)">
+          <div
+            :class="{ 'is-active': tab.isActive }"
+            class="tab-btn"
+            :href="tab.href"
+            @click="selectTab(tab)"
+          >
             <!-- {{ tab.name }} -->
             <i :class="tab.iconClass"></i>
           </div>
@@ -41,59 +46,59 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
+@import "../assets/css/dark-theme.scss";
+
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 .tab-pane {
   display: flex;
   flex-direction: row;
   height: 100%;
-}
-.tabs {
-  /* height: 100%; */
-}
-.tabs > ul {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-.tabs > ul > li {
-  display: block;
-  flex: auto;
-}
-.tabs-details {
-  width: 100%;
-  height: 100%;
-}
-.tab-btn {
-  position: relative;
-  color: #b6b6b6;
-  height: 100%;
-  background: #44475a;
-  display: flex;
-  text-align: center;
-  justify-content: center;
-  flex-direction: column;
-  text-orientation: upright;
-  cursor: pointer;
-  width: 3rem;
-}
-.tab-btn:hover,
-.is-active > .tab-btn {
-  color: #e5e5e5;
-}
-.is-active > .tab-btn::before {
-  content: "";
-  position: absolute;
-  background: #e5e5e5;
-  width: 2px;
-  height: 100%;
-  left: 0;
-}
-.tab-btn .iconfont {
-  font-size: 2rem;
+  .tabs {
+    & > ul {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      & > li {
+        display: block;
+        flex: auto;
+        .tab-btn {
+          position: relative;
+          color: $txt-clr;
+          height: 100%;
+          background: $bk-pop-clr;
+          display: flex;
+          text-align: center;
+          justify-content: center;
+          flex-direction: column;
+          text-orientation: upright;
+          cursor: pointer;
+          width: 3rem;
+          & .iconfont {
+            font-size: 2rem;
+          }
+          &:hover,
+          &.is-active {
+            color: $txt-head-clr;
+          }
+          &.is-active::before {
+            content: "";
+            position: absolute;
+            background: $txt-head-clr;
+            width: 2px;
+            height: 100%;
+            left: 0;
+          }
+        }
+      }
+    }
+  }
+  .tabs-details {
+    width: 100%;
+    height: 100%;
+  }
 }
 </style>
