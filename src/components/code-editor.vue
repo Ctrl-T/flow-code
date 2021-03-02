@@ -5,7 +5,6 @@
 </template>
 
 <script>
-import debounce from "../assets/js/utils";
 
 export default {
   name: "codeEditor",
@@ -36,11 +35,20 @@ export default {
       wrap: true,
     });
     this.editor.resize();
-    this.editor.getSession().on("change", debounce(this.onCodeChange, 200));
+    this.editor.getSession().on("changeAnnotation", this.onCodeChange);
     this.onCodeChange();
   },
   methods: {
     onCodeChange() {
+      for (let anno of this.editor.getSession().getAnnotations()) {
+        if (
+          anno.type == "info" ||
+          anno.type == "warning" ||
+          anno.type == "error"
+        ) {
+          return;
+        }
+      }
       this.$emit("code-change", this.editor.getValue());
     },
   },

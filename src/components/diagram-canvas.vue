@@ -159,7 +159,7 @@ export default {
         zoom_point.y = e.clientY - offset.top;
 
         e.preventDefault();
-        var delta = -e.deltaY || e.originalEvent.wheelDelta;
+        var delta = -e.deltaY;
         if (delta === undefined) {
           //we are on firefox
           delta = e.originalEvent.detail;

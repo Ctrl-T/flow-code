@@ -1,5 +1,5 @@
 import { BlockStatement, ExpressionStatement, IfStatement, NoOp, WhileStatement } from '../parser/ast';
-import { ChartNode, ConditionNode, EndNode, OperationNode, StartNode } from './chart-node';
+import { ChartNode, ConditionNode, EndNode, OperationNode, StartNode, PseudoNode, ParallelNode } from './chart-node';
 // import { ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode } from './chart-node'
 
 class Interpreter {
@@ -29,7 +29,7 @@ class Interpreter {
             return null;
         }
         ChartNode.resetIdCnt();
-        this.lastNode = new EndNode('结束', null);
+        this.lastNode = new EndNode('结束');
         this.chartNodes.push(this.lastNode);
         this.traverse(tree);
         this.generateDSL();
@@ -61,7 +61,11 @@ class Interpreter {
         }
         let chartNode = null;
         if (node instanceof ExpressionStatement) {
-            chartNode = new OperationNode(node.text, this.lastNode);
+            if (this.lastNode instanceof PseudoNode) {
+                chartNode = new ParallelNode(node.text, this.lastNode);
+            } else {
+                chartNode = new OperationNode(node.text, this.lastNode);
+            }
         } else if (node instanceof BlockStatement) {
             let astNodes = [];
             for (let child of node.children) {
@@ -73,6 +77,7 @@ class Interpreter {
             return chartNode;
         } else if (node instanceof IfStatement) {
             let realLastNode = this.lastNode;
+            realLastNode.resetHeight();
             let trueNode = this.convertToChartNode(node.consequent);
             this.lastNode = realLastNode;
             let falseNode = null;
@@ -84,13 +89,17 @@ class Interpreter {
             chartNode = new ConditionNode(node.test.text, trueNode, falseNode);
         } else if (node instanceof WhileStatement) {
             let realLastNode = this.lastNode;
-            let pseudoNode = new ConditionNode(null, null, null);
+            realLastNode.resetHeight();
+            let pseudoNode = new PseudoNode();
             this.lastNode = pseudoNode
             let trueNode = this.convertToChartNode(node.body);
             chartNode = new ConditionNode(node.test.text, trueNode, realLastNode);
-            pseudoNode.id = chartNode.id;
+            pseudoNode.restoreRealNodes(chartNode, realLastNode);
         } else if (node instanceof NoOp) {
-            return this.lastNode;
+            if (this.lastNode instanceof PseudoNode)
+                chartNode = new ParallelNode("Null", this.lastNode);
+            else
+                return this.lastNode;
         } else {
             this.error();
         }
@@ -104,14 +113,23 @@ class Interpreter {
      */
     generateDSL() {
         for (let node of this.chartNodes) {
+            // TODO: (align-next=no) to disable shift
             this.DSLNodes.push(`${node.id}=>${node.type}: ${node.name}`);
             if (node instanceof EndNode) {
                 continue;
             }
             if (node instanceof ConditionNode) {
-                this.DSLConnections.push(`${node.id}(yes)->${node.trueNode.id}`);
+                let yesDir = ', bottom', noDir = '';
+                if (!node.trueToBottom) {
+                    [yesDir, noDir] = [noDir, yesDir];
+                }
+                this.DSLConnections.push(`${node.id}(yes${yesDir})->${node.nextNode.id}`);
                 if (node.falseNode != null)
-                    this.DSLConnections.push(`${node.id}(no)->${node.falseNode.id}`);
+                    this.DSLConnections.push(`${node.id}(no${noDir})->${node.falseNode.id}`);
+            } else if (node instanceof ParallelNode) {
+                this.DSLConnections.push(`${node.id}(path1, bottom)->${node.falseNode.id}`);
+                this.DSLConnections.push(`${node.id}(path2)->${node.nextNode.id}`);
+                this.DSLConnections.push(`${node.id}@>${node.falseNode.id}({"stroke-width":0})`);
             } else {
                 this.DSLConnections.push(`${node.id}->${node.nextNode.id}`);
             }

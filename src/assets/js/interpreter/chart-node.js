@@ -5,7 +5,8 @@ const ChartNodeType = {
     INPUTOUTPUT: 'inputoutput',
     SUBROUTINE: 'subroutine',
     CONDITION: 'condition',
-    PARALLEL: 'parallel'
+    PARALLEL: 'parallel',
+    PSEUDO: 'pseudo'
 }
 
 const DirctionType = {
@@ -28,11 +29,30 @@ class ChartNode {
         this.name = name;
         this.nextNode = nextNode;
         this.id = type.substring(0, 2) + ChartNode.idCnt;
+        if (nextNode) {
+            this.height = nextNode.height + 1;
+        } else {
+            this.height = 0;
+        }
+        this.checkLinkPseudoNode();
         ChartNode.idCnt += 1;
+    }
+
+    resetHeight() {
+        this.height = 0;
     }
 
     static resetIdCnt() {
         ChartNode.idCnt = 0;
+    }
+
+    checkLinkPseudoNode() {
+        if (this.nextNode instanceof PseudoNode) {
+            this.nextNode.addPrevNode(this);
+        }
+        if (this.falseNode instanceof PseudoNode) {
+            this.falseNode.addPrevNode(this);
+        }
     }
 }
 
@@ -51,10 +71,9 @@ class EndNode extends ChartNode {
     /**
      * 
      * @param {String} name 
-     * @param {ChartNode} nextNode 
      */
-    constructor(name, nextNode) {
-        super(ChartNodeType.END, name, nextNode);
+    constructor(name) {
+        super(ChartNodeType.END, name, null);
     }
 }
 
@@ -100,8 +119,11 @@ class ConditionNode extends ChartNode {
      */
     constructor(name, trueNode, falseNode) {
         super(ChartNodeType.CONDITION, name, trueNode);
-        this.trueNode = trueNode;
         this.falseNode = falseNode;
+        if (trueNode && falseNode) {
+            this.trueToBottom = trueNode.height >= falseNode.height;
+        }
+        this.checkLinkPseudoNode();
     }
 }
 
@@ -110,10 +132,48 @@ class ParallelNode extends ChartNode {
      * 
      * @param {String} name 
      * @param {ChartNode} nextNode 
+     * @param {ChartNode} next2Node 
      */
-    constructor(name, nextNode) {
+    constructor(name, nextNode, nextNode2) {
         super(ChartNodeType.PARALLEL, name, nextNode);
+        this.falseNode = nextNode2;
+        this.checkLinkPseudoNode();
     }
 }
 
-export {DirctionType, ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode };
+class PseudoNode extends ChartNode {
+    constructor() {
+        super(ChartNodeType.PSEUDO, null, null);
+        this.prevNodes = [];
+    }
+    addPrevNode(node) {
+        if (!this.prevNodes.includes(node))
+            this.prevNodes.push(node);
+    }
+    /**
+     * restore pesudoNodes to real nodes
+     * @param {ChartNode} realNode 
+     * @param {ChartNode} realNode2 
+     */
+    restoreRealNodes(realNode, realNode2) {
+        while (this.prevNodes.length > 0) {
+            let node = this.prevNodes.pop();
+            if (node instanceof ParallelNode) {
+                if (node.nextNode == this)
+                    node.nextNode = realNode;
+                node.falseNode = realNode2;
+            }
+            if (node instanceof ConditionNode) {
+                if (node.nextNode == this)
+                    node.nextNode = realNode;
+                else
+                    node.falseNode = realNode;
+            } else {
+                node.nextNode = realNode;
+            }
+            node.checkLinkPseudoNode();
+        }
+    }
+}
+
+export { DirctionType, ChartNode, StartNode, EndNode, OperationNode, InputoutputNode, SubroutineNode, ConditionNode, ParallelNode, PseudoNode };
